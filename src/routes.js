@@ -28,8 +28,8 @@ export default () => {
       <RouteHandler exact path="/ad/:id">
         <AdPage />
       </RouteHandler>
-      <RouteHandler exact path="/post-an-ad">
-        <Addad />
+      <RouteHandler private exact path="/post-an-ad">
+        <AddAd />
       </RouteHandler>
       <RouteHandler>
         <NotFound />
