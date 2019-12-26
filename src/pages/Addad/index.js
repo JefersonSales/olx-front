@@ -1,7 +1,8 @@
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
+import MaskedInput from 'react-text-mask';
+import createNumberMask from 'text-mask-addons/dist/createNumberMask';
 import { PageArea } from './styled';
 import useAPI from '../../helpers/OlxAPI';
-import { doLogin } from '../../helpers/auth-handler';
 
 import {
   PageContainer,
@@ -14,6 +15,8 @@ function Page() {
 
   const fileField = useRef();
 
+  const [categories, setCategories] = useState([]);
+
   const [title, setTitle] = useState('');
   const [category, setCategory] = useState('');
   const [price, setPrice] = useState('');
@@ -22,6 +25,14 @@ function Page() {
 
   const [disabled, setDisabled] = useState(false);
   const [error, setError] = useState('');
+
+  useEffect(() => {
+    const getCategories = async () => {
+      const cats = await api.getCategories();
+      setCategories(cats);
+    };
+    getCategories();
+  }, []);
 
   const handleSubmit = async e => {
     e.preventDefault();
@@ -38,6 +49,14 @@ function Page() {
 
     setDisabled(false);
   };
+
+  const priceMask = createNumberMask({
+    prefix: 'R$ ',
+    includeThousandsSeparator: true,
+    thousandsSeparatorSymbol: '.',
+    allowDecimal: true,
+    decimalSymbol: ',',
+  });
 
   return (
     <PageContainer>
@@ -60,12 +79,32 @@ function Page() {
           <label className="area">
             <div className="area-title">Categoria</div>
             <div className="area-input">
-              <select></select>
+              <select
+                disabled={disabled}
+                onChange={e => setCategory(e.target.value)}
+                required
+              >
+                <option>Selecione a categoria</option>
+                {categories &&
+                  categories.map(i => (
+                    <option key={i._id} value={i._id}>
+                      {i.name}
+                    </option>
+                  ))}
+              </select>
             </div>
           </label>
           <label className="area">
             <div className="area-title">Preço</div>
-            <div>...</div>
+            <div className="area-input">
+              <MaskedInput
+                mask={priceMask}
+                placeholder="R$ "
+                disabled={disabled || priceNegotiable}
+                value={price}
+                onChange={e => setPrice(e.target.value)}
+              />
+            </div>
           </label>
           <label className="area">
             <div className="area-title">Preço Negociável</div>
@@ -80,7 +119,7 @@ function Page() {
           </label>
           <label className="area">
             <div className="area-title">Descrição</div>
-            <div>
+            <div className="area-input">
               <textarea
                 disabled={disabled}
                 value={desc}
@@ -91,7 +130,7 @@ function Page() {
           </label>
           <label className="area">
             <div className="area-title">Imagens (1 ou mais)</div>
-            <div>
+            <div className="area-input">
               <input type="file" disabled={disabled} ref={fileField} multiple />
             </div>
           </label>
